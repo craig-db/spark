@@ -54,7 +54,8 @@ case class WriteToStreamStatement(
     isContinuousTrigger: Boolean,
     inputQuery: LogicalPlan,
     catalogAndIdent: Option[(TableCatalog, Identifier)] = None,
-    catalogTable: Option[CatalogTable] = None) extends UnaryNode {
+    catalogTable: Option[CatalogTable] = None,
+    droppedRecordsLocation: Option[String]) extends UnaryNode {
 
   override def isStreaming: Boolean = true
 

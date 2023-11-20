@@ -430,7 +430,8 @@ final class DataStreamWriter[T] private[sql](ds: Dataset[T]) {
       recoverFromCheckpointLocation = recoverFromCheckpoint,
       trigger = trigger,
       catalogAndIdent = catalogAndIdent,
-      catalogTable = catalogTable)
+      catalogTable = catalogTable,
+      userSpecifiedDroppedRecordsLocation = newOptions.get("droppedRecordsLocation"))
   }
 
   private def createV1Sink(optionsWithPath: CaseInsensitiveMap[String]): Sink = {

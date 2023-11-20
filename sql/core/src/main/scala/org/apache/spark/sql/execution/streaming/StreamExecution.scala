@@ -68,6 +68,7 @@ abstract class StreamExecution(
     override val sparkSession: SparkSession,
     override val name: String,
     val resolvedCheckpointRoot: String,
+    val droppedRecordsLocation: Option[String],
     val analyzedPlan: LogicalPlan,
     val sink: Table,
     val trigger: Trigger,

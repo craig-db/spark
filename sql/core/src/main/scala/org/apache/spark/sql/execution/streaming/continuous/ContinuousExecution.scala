@@ -48,8 +48,9 @@ class ContinuousExecution(
     extraOptions: Map[String, String],
     plan: WriteToStream)
   extends StreamExecution(
-    sparkSession, plan.name, plan.resolvedCheckpointLocation, plan.inputQuery, plan.sink,
-    trigger, triggerClock, plan.outputMode, plan.deleteCheckpointOnStop) {
+    sparkSession, plan.name, plan.resolvedCheckpointLocation, plan.droppedRecordsLocation,
+    plan.inputQuery, plan.sink, trigger, triggerClock, plan.outputMode,
+    plan.deleteCheckpointOnStop) {
 
   @volatile protected var sources: Seq[ContinuousStream] = Seq()
 
@@ -221,7 +222,8 @@ class ContinuousExecution(
         None,
         offsetSeqMetadata,
         WatermarkPropagator.noop(),
-        false)
+        false,
+        droppedRecordsLocation)
       lastExecution.executedPlan // Force the lazy generation of execution plan
     }
 

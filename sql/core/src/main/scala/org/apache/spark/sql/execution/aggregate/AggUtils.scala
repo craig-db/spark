@@ -475,7 +475,7 @@ object AggUtils {
     val restored = SessionWindowStateStoreRestoreExec(groupingWithoutSessionAttributes,
       sessionExpression.toAttribute, stateInfo = None,
       eventTimeWatermarkForLateEvents = None, eventTimeWatermarkForEviction = None,
-      stateFormatVersion, partialMerged1)
+      stateFormatVersion, partialMerged1, null)
 
     val mergedSessions = {
       val aggregateExpressions = functionsWithoutDistinct.map(_.copy(mode = PartialMerge))

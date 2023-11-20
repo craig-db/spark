@@ -57,6 +57,7 @@ object ResolveWriteToStream extends Rule[LogicalPlan] with SQLConfHelper {
       WriteToStream(
         s.userSpecifiedName.orNull,
         resolvedCheckpointLocation,
+        s.droppedRecordsLocation,
         s.sink,
         s.outputMode,
         deleteCheckpointOnStop,
