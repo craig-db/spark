@@ -54,7 +54,8 @@ class IncrementalExecution(
     val prevOffsetSeqMetadata: Option[OffsetSeqMetadata],
     val offsetSeqMetadata: OffsetSeqMetadata,
     val watermarkPropagator: WatermarkPropagator,
-    val isFirstBatch: Boolean)
+    val isFirstBatch: Boolean,
+    val droppedRecordsLocation: Option[String])
   extends QueryExecution(sparkSession, logicalPlan) with Logging {
 
   // Modified planner with stateful operations.
@@ -120,7 +121,8 @@ class IncrementalExecution(
       runId,
       statefulOperatorId.getAndIncrement(),
       currentBatchId,
-      numStateStores)
+      numStateStores,
+      droppedRecordsLocation)
   }
 
   sealed trait SparkPlanPartialRule {
@@ -217,7 +219,7 @@ class IncrementalExecution(
       case SessionWindowStateStoreSaveExec(keys, session, None, None, None, None,
       stateFormatVersion,
       UnaryExecNode(agg,
-      SessionWindowStateStoreRestoreExec(_, _, None, None, None, _, child))) =>
+      SessionWindowStateStoreRestoreExec(_, _, None, None, None, _, child, null))) =>
         val aggStateInfo = nextStatefulOperationStateInfo()
         SessionWindowStateStoreSaveExec(
           keys,
@@ -235,7 +237,7 @@ class IncrementalExecution(
               eventTimeWatermarkForLateEvents = None,
               eventTimeWatermarkForEviction = None,
               stateFormatVersion,
-              child) :: Nil))
+              child, null) :: Nil))
 
       case StreamingDeduplicateExec(keys, child, None, None, None) =>
         StreamingDeduplicateExec(

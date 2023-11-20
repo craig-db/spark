@@ -45,8 +45,9 @@ class MicroBatchExecution(
     extraOptions: Map[String, String],
     plan: WriteToStream)
   extends StreamExecution(
-    sparkSession, plan.name, plan.resolvedCheckpointLocation, plan.inputQuery, plan.sink, trigger,
-    triggerClock, plan.outputMode, plan.deleteCheckpointOnStop) with AsyncLogPurge {
+    sparkSession, plan.name, plan.resolvedCheckpointLocation, plan.droppedRecordsLocation,
+    plan.inputQuery, plan.sink, trigger, triggerClock, plan.outputMode,
+    plan.deleteCheckpointOnStop) with AsyncLogPurge {
 
   protected[sql] val errorNotifier = new ErrorNotifier()
 
@@ -758,7 +759,8 @@ class MicroBatchExecution(
         offsetLog.offsetSeqMetadataForBatchId(currentBatchId - 1),
         offsetSeqMetadata,
         watermarkPropagator,
-        isFirstBatch)
+        isFirstBatch,
+        droppedRecordsLocation)
       lastExecution.executedPlan // Force the lazy generation of execution plan
     }
 

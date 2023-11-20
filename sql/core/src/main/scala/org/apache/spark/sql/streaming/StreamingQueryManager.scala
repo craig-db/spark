@@ -249,7 +249,8 @@ class StreamingQueryManager private[sql] (
       trigger: Trigger,
       triggerClock: Clock,
       catalogAndIdent: Option[(TableCatalog, Identifier)] = None,
-      catalogTable: Option[CatalogTable] = None): StreamingQueryWrapper = {
+      catalogTable: Option[CatalogTable] = None,
+      userSpecifiedDroppedRecordsLocation: Option[String] = None): StreamingQueryWrapper = {
     val analyzedPlan = df.queryExecution.analyzed
     df.queryExecution.assertAnalyzed()
 
@@ -264,7 +265,8 @@ class StreamingQueryManager private[sql] (
       trigger.isInstanceOf[ContinuousTrigger],
       analyzedPlan,
       catalogAndIdent,
-      catalogTable)
+      catalogTable,
+      userSpecifiedDroppedRecordsLocation)
 
     val analyzedStreamWritePlan =
       sparkSession.sessionState.executePlan(dataStreamWritePlan).analyzed
@@ -330,7 +332,8 @@ class StreamingQueryManager private[sql] (
       trigger: Trigger = Trigger.ProcessingTime(0),
       triggerClock: Clock = new SystemClock(),
       catalogAndIdent: Option[(TableCatalog, Identifier)] = None,
-      catalogTable: Option[CatalogTable] = None): StreamingQuery = {
+      catalogTable: Option[CatalogTable] = None,
+      userSpecifiedDroppedRecordsLocation: Option[String] = None): StreamingQuery = {
     val query = createQuery(
       userSpecifiedName,
       userSpecifiedCheckpointLocation,
@@ -343,7 +346,8 @@ class StreamingQueryManager private[sql] (
       trigger,
       triggerClock,
       catalogAndIdent,
-      catalogTable)
+      catalogTable,
+      userSpecifiedDroppedRecordsLocation)
     // scalastyle:on argcount
 
     // The following code block checks if a stream with the same name or id is running. Then it

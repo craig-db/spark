@@ -50,7 +50,8 @@ case class StatefulOperatorStateInfo(
     queryRunId: UUID,
     operatorId: Long,
     storeVersion: Long,
-    numPartitions: Int) {
+    numPartitions: Int,
+    droppedRecordsLocation: Option[String] = None) {
   override def toString(): String = {
     s"state info [ checkpoint = $checkpointLocation, runId = $queryRunId, " +
       s"opId = $operatorId, ver = $storeVersion, numPartitions = $numPartitions]"
@@ -234,7 +235,12 @@ trait StateStoreWriter extends StatefulOperator with PythonSQLMetrics { self: Sp
       predicateDropRowByWatermark: BasePredicate): Iterator[InternalRow] = {
     iter.filterNot { row =>
       val shouldDrop = predicateDropRowByWatermark.eval(row)
-      if (shouldDrop) longMetric("numRowsDroppedByWatermark") += 1
+      if (shouldDrop) {
+        longMetric("numRowsDroppedByWatermark") += 1
+        if (getStateInfo.droppedRecordsLocation.isDefined || 1==1) {
+          logError(s"DROPPED DUE TO WATERMARK: ${row}")
+        }
+      }
       shouldDrop
     }
   }
@@ -674,7 +680,8 @@ case class SessionWindowStateStoreRestoreExec(
     eventTimeWatermarkForLateEvents: Option[Long],
     eventTimeWatermarkForEviction: Option[Long],
     stateFormatVersion: Int,
-    child: SparkPlan)
+    child: SparkPlan,
+    droppedRecordsLocation: Option[String])
   extends UnaryExecNode with StateStoreReader with WatermarkSupport {
 
   override lazy val metrics = Map(
@@ -705,7 +712,12 @@ case class SessionWindowStateStoreRestoreExec(
       val filteredIterator = watermarkPredicateForDataForLateEvents match {
         case Some(predicate) => iter.filter((row: InternalRow) => {
           val shouldKeep = !predicate.eval(row)
-          if (!shouldKeep) longMetric("numRowsDroppedByWatermark") += 1
+          if (!shouldKeep) {
+            longMetric("numRowsDroppedByWatermark") += 1
+            if (droppedRecordsLocation.isDefined) {
+              logInfo(s"DROPPED2 DUE TO WATERMARK: ${row}")
+            }
+          }
           shouldKeep
         })
         case None => iter
